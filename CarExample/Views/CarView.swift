@@ -1,5 +1,5 @@
 /*
-See the LICENSE.txt file for this sample’s licensing information.
+See the LICENSE.txt file for this sample's licensing information.
 
 Abstract:
 A view to load in a model of a car that people can manipulate with gestures.
@@ -10,7 +10,7 @@ import RealityKit
 import simd
 
 // ===== 말풍선 목표 폭(미터) — 필요시 0.10~0.16 사이로 조절 =====
-private let targetCalloutWidth: Float = 0.12    // 12cm
+private let targetCalloutWidth: Float = 0.16    // 12cm
 
 // ===== 디버그: 엔티티 이름 덤프 =====
 func dumpEntityNames(_ entity: Entity, indent: String = "") {
@@ -24,14 +24,29 @@ extension Entity {
         body(self)
         for c in children { c.forEachDescendant(body) }
     }
+    
     var worldPosition: SIMD3<Float> {
         let m = transformMatrix(relativeTo: nil)
         return .init(m.columns.3.x, m.columns.3.y, m.columns.3.z)
     }
+    
     func setWorldPosition(_ p: SIMD3<Float>) {
         var m = transformMatrix(relativeTo: nil)
         m.columns.3 = SIMD4<Float>(p.x, p.y, p.z, 1)
         setTransformMatrix(m, relativeTo: nil)
+    }
+    
+    // 재귀적으로 이름으로 엔티티 찾기
+    func findEntityRecursive(named name: String) -> Entity? {
+        if self.name == name {
+            return self
+        }
+        for child in children {
+            if let found = child.findEntityRecursive(named: name) {
+                return found
+            }
+        }
+        return nil
     }
 }
 
@@ -43,8 +58,6 @@ func fitAttachmentWidth(_ e: Entity, targetWidth: Float) {
     let current = max(0.0001, vb.extents.x * 2)
     let s = targetWidth / current
     // 현재 월드 스케일에 비율 곱해 적용 → 매 프레임 적용해도 안정
-    let m = e.transformMatrix(relativeTo: nil)
-    // 추출한 월드 스케일에 단순 곱을 적용하기 위해 로컬 스케일로 곱해도 충분히 수렴
     e.setScale(e.scale * SIMD3<Float>(repeating: s), relativeTo: e.parent)
 }
 
@@ -143,17 +156,62 @@ struct CarView: View {
 
                 // 4) 각 파트 말풍선 + 리더라인 + 프로브(월드 좌표 기반)
                 for part in CarParts.all {
-                    guard let host = car.findEntity(named: part.entityName) else { continue }
-
-                    // 월드 바운딩 상단 + 가림 회피 오프셋
-                    let wvb = host.visualBounds(relativeTo: nil)
-                    var upTarget = wvb.center + SIMD3<Float>(0, max(wvb.extents.y * 0.6, 0.15), 0)
-                    var dir = upTarget - host.worldPosition
-                    if simd_length(dir) < 1e-4 { dir = .init(0, 1, 0) }
-                    dir = simd_normalize(dir)
-                    upTarget += dir * 0.18
-                    let worldTarget = upTarget + part.offset
-
+                    // findEntityRecursive 사용하여 중첩된 구조에서도 찾기
+                    guard let host = car.findEntityRecursive(named: part.entityName) else {
+                        print("❌ Cannot find entity:", part.entityName)
+                        continue
+                    }
+                    
+                    print("\n🔍 ===== \(part.id) (\(part.entityName)) 디버그 =====")
+                    
+                    // 1. 부품의 로컬 position (Transform 기반)
+                    let localPos = host.position
+                    print("📍 Local Position (Transform): \(localPos)")
+                    
+                    // 2. 부품의 월드 position (Transform 기반)
+                    let transformWorldPos = host.position(relativeTo: nil)
+                    print("📍 World Position (Transform): \(transformWorldPos)")
+                    
+                    // 3. 부품의 로컬 바운딩 박스
+                    let localBounds = host.visualBounds(relativeTo: host)
+                    print("📦 Local Bounds:")
+                    print("   - Center: \(localBounds.center)")
+                    print("   - Min: \(localBounds.min)")
+                    print("   - Max: \(localBounds.max)")
+                    print("   - Extents: \(localBounds.extents)")
+                    
+                    // 4. 부품의 월드 바운딩 박스
+                    let worldBounds = host.visualBounds(relativeTo: nil)
+                    print("🌍 World Bounds:")
+                    print("   - Center: \(worldBounds.center)")
+                    print("   - Min: \(worldBounds.min)")
+                    print("   - Max: \(worldBounds.max)")
+                    print("   - Extents: \(worldBounds.extents)")
+                    
+                    // 5. 부모 정보
+                    if let parent = host.parent {
+                        print("👆 Parent: \(parent.name)")
+                        print("   - Parent World Pos: \(parent.position(relativeTo: nil))")
+                    }
+                    
+                    // 6. Transform Matrix 정보
+                    let matrix = host.transformMatrix(relativeTo: nil)
+                    print("📐 Transform Matrix (columns 3 - position):")
+                    print("   - x: \(matrix.columns.3.x)")
+                    print("   - y: \(matrix.columns.3.y)")
+                    print("   - z: \(matrix.columns.3.z)")
+                    
+                    // ✅ visualBounds.center로 부품의 실제 월드 위치 가져오기
+                    let hostWorldPos = worldBounds.center  // 실제 부품의 3D 중심 위치
+                    
+                    // 말풍선 위치: 부품 실제 중심 위치 + 위쪽 오프셋 + 개별 오프셋
+                    let worldTarget = hostWorldPos +
+                        SIMD3<Float>(0, worldBounds.extents.y * 0.5 + 0.1, 0) +
+                        part.offset
+                    
+                    print("🎯 최종 Attachment 위치: \(worldTarget)")
+                    print("=======================================\n")
+                    
                     // (디버그) 위치 확인용: 빨간 구
                     let probeName = "Probe:\(part.id)"
                     if car.findEntity(named: probeName) == nil {
@@ -168,7 +226,7 @@ struct CarView: View {
                         probe.setWorldPosition(worldTarget)
                         probe.isEnabled = showCallouts
                     }
-
+                    
                     // (A) visionOS 2: attachments 말풍선
                     if #available(visionOS 2.0, *), let callout = attachments.entity(for: part.id) {
                         callout.name = "Attachment:\(part.id)"
@@ -178,7 +236,6 @@ struct CarView: View {
                         // ★ 크기 자동 보정
                         fitAttachmentWidth(callout, targetWidth: targetCalloutWidth)
                         callout.isEnabled = showCallouts
-                        print("✅ attachment \(part.id) @", worldTarget)
                     } else {
                         // (B) 폴백: 3D 텍스트(월드 좌표)
                         let labelName = "FallbackLabel:\(part.id)"
@@ -192,7 +249,7 @@ struct CarView: View {
                                 lineBreakMode: .byWordWrapping
                             )
                             let textE = ModelEntity(mesh: mesh ?? .generateBox(size: .one * 0.05),
-                                                    materials: [UnlitMaterial(color: .white)])
+                                                                materials: [UnlitMaterial(color: .white)])
                             textE.name = labelName
                             car.addChild(textE)
                         }
@@ -201,7 +258,6 @@ struct CarView: View {
                             // ★ 크기 자동 보정
                             fitAttachmentWidth(textE, targetWidth: targetCalloutWidth)
                             textE.isEnabled = showCallouts
-                            print("⚠️ fallback label used for", part.id, "@", worldTarget)
                         }
                     }
 
@@ -245,7 +301,12 @@ struct CarView: View {
 
                         // 리더라인 정렬
                         for part in CarParts.all {
-                            guard let host = car.findEntity(named: part.entityName) else { continue }
+                            // findEntityRecursive 사용
+                            guard let host = car.findEntityRecursive(named: part.entityName) else { continue }
+                            
+                            // ✅ visualBounds.center 사용해서 부품의 실제 중심점 가져오기
+                            let worldBounds = host.visualBounds(relativeTo: nil)
+                            let A = worldBounds.center  // 부품의 실제 중심점
 
                             // 말풍선 위치
                             var b: SIMD3<Float>?
@@ -258,8 +319,6 @@ struct CarView: View {
                                 b = fallback.worldPosition
                             }
                             guard let B = b else { continue }
-
-                            let A = host.worldPosition
 
                             guard
                                 let stick = car.findEntity(named: "Leader:\(part.id)") as? ModelEntity,
