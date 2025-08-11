@@ -19,7 +19,7 @@
 /* Begin PBXFileReference section */
 		452E3C3A71A9AE5856D2620E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B509E2DA2BF53C3A00F3CBA7 /* SIMD3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SIMD3.swift; sourceTree = "<group>"; };
-		C48CE40B2127D860F557C5A9 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = LICENSE.txt; sourceTree = "<group>"; };
+		C48CE40B2127D860F557C5A9 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		DF5A7C342BD6F72200E5C24D /* CarExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CarExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF5A7C3B2BD6F72200E5C24D /* EntryPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryPoint.swift; sourceTree = "<group>"; };
 		DF5A7C3D2BD6F72200E5C24D /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -28,7 +28,7 @@
 		DF5A7C462BD6F72400E5C24D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DF5A7C4C2BD6F76400E5C24D /* CarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarView.swift; sourceTree = "<group>"; };
 		DF5A7C512BD7152700E5C24D /* Huracan-EVO-RWD-Spyder-opt-22.usdz */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Huracan-EVO-RWD-Spyder-opt-22.usdz"; sourceTree = "<group>"; };
-		E5C10A7EBA328CD550735CB3 /* SampleCode.xcconfig */ = {isa = PBXFileReference; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
+		E5C10A7EBA328CD550735CB3 /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -336,7 +336,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = CarExample/App;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = H7SJ9FJPVA;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -366,7 +366,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = CarExample/App;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = H7SJ9FJPVA;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
